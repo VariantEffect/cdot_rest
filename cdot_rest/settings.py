@@ -109,6 +109,7 @@ USE_TZ = True
 REDIS_KWARGS = {
     "host": environ.get("REDIS_HOST", "localhost"),
     "port": environ.get("REDIS_PORT", 6379),
+    "ssl": environ.get("REDIS_SSL", "false").lower() == "true",
     "db": 0,
 }
 

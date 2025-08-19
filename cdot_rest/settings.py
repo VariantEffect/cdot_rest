@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+from os import environ
 
 from cdot_rest.django_secret_key import get_or_create_django_secret_key
 
@@ -22,7 +23,7 @@ SECRET_KEY = get_or_create_django_secret_key(THIS_DIR)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["cdot.cc", "129.127.18.77", "localhost"]
+ALLOWED_HOSTS = ["cdot-rest", "cdot.staging.mavedb.org", "cdot.mavedb.org", "localhost"]
 
 
 # Application definition
@@ -57,6 +58,7 @@ LOGGING = {
 }
 
 MIDDLEWARE = [
+    'cdot_rest.middleware.HealthCheckMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -106,8 +108,9 @@ USE_TZ = True
 
 # Transcripts are store here
 REDIS_KWARGS = {
-    "host": "localhost",
-    "port": 6379,
+    "host": environ.get("REDIS_HOST", "localhost"),
+    "port": environ.get("REDIS_PORT", 6379),
+    "ssl": environ.get("REDIS_SSL", "false").lower() == "true",
     "db": 0,
 }
 

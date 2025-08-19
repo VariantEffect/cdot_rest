@@ -22,7 +22,6 @@ def download_latest_cdot_transcript_files(output_dir):
         click.echo("No files found for the specified sources and genomes.")
         return
 
-    download_urls = [asset["browser_download_url"] for asset in release.get("assets", []) if asset["browser_download_url"].endswith(".json.gz")]
     download_urls = get_latest_combo_file_urls(["refseq", "ensembl"], ["grch38", "grch37"])
 
     for url in download_urls:

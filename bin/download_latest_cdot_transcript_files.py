@@ -1,9 +1,15 @@
 import os
-import requests
+import re
 
 import click
+import requests
 
-from cdot.data_release import get_latest_data_release, get_latest_combo_file_urls
+from cdot.data_release import get_latest_data_release
+
+# One file per annotation consortium, holding every genome build's alignment in each transcript record.
+# The per-build files repeat a transcript once per build, and loading them in turn would keep only the
+# last build's record while the earlier build's interval tree still lists the transcript.
+ALL_BUILDS_FILE = re.compile(r"cdot-\d+\.\d+\.\d+\.all-builds-(ensembl|refseq)-.+\.json\.gz")
 
 
 @click.command()
@@ -14,16 +20,20 @@ from cdot.data_release import get_latest_data_release, get_latest_combo_file_url
     help="Directory to save downloaded files.",
 )
 def download_latest_cdot_transcript_files(output_dir):
-    """Download latest CDOT transcript files for specified sources and genomes."""
+    """Download the latest cdot all-builds transcript files for RefSeq and Ensembl."""
     release = get_latest_data_release()
-    os.makedirs(output_dir, exist_ok=True)
-
     if not release:
-        click.echo("No files found for the specified sources and genomes.")
-        return
+        raise click.ClickException("No cdot data release found.")
 
-    download_urls = get_latest_combo_file_urls(["refseq", "ensembl"], ["grch38", "grch37"])
+    download_urls = [
+        asset["browser_download_url"] for asset in release["assets"] if ALL_BUILDS_FILE.fullmatch(asset["name"])
+    ]
+    if len(download_urls) != 2:
+        raise click.ClickException(
+            f"Expected 2 all-builds files in {release['tag_name']}, found {len(download_urls)}."
+        )
 
+    os.makedirs(output_dir, exist_ok=True)
     for url in download_urls:
         filename = os.path.join(output_dir, os.path.basename(url))
         click.echo(f"Downloading {url} to {filename}...")

@@ -52,8 +52,9 @@ def load_cdot_transcript_files(directory):
 
             transcripts_data = {}
 
+            # ijson reads non-integer numbers as Decimal unless told otherwise, which json.dumps rejects.
             def transcripts_iter():
-                for transcript_id, transcript in ijson.kvitems(f, "transcripts"):
+                for transcript_id, transcript in ijson.kvitems(f, "transcripts", use_float=True):
                     transcript["cdot_data_version"] = __version__
                     transcripts_data[transcript_id] = json.dumps(transcript)
                     yield transcript_id, transcript
@@ -98,7 +99,7 @@ def load_cdot_transcript_files(directory):
             logger.info("Adding gene data...")
             f.seek(0)
             genes_data = {}
-            for gene_id, gene in ijson.kvitems(f, "genes"):
+            for gene_id, gene in ijson.kvitems(f, "genes", use_float=True):
                 if gene_symbol := gene.get("gene_symbol"):
                     genes_data[gene_symbol] = json.dumps(gene)
             r.mset(genes_data)

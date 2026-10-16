@@ -55,3 +55,8 @@ the filename:
 ```
 python3 load_cdot_transcript_files.py /data
 ```
+
+The image downloads cdot's all-builds files, one per annotation consortium, in which each transcript
+carries its GRCh37, GRCh38 and T2T alignments. Don't load cdot's per-build files together: a transcript
+in more than one of them keeps only the last file's alignment, while the other builds' interval trees
+still list it, and region lookups touching it fail.
